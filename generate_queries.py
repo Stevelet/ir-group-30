@@ -1,6 +1,8 @@
 import transformers
 from dotenv import load_dotenv
 from pathlib import Path
+import json
+from prompts import PROMPT_DICT
 
 load_dotenv()
 
@@ -14,28 +16,27 @@ trec_data = os.path.join(k_drive, "trec")
 terrier_path = os.path.join(k_drive, "terrier")
 index_path = os.path.join(k_drive, "index")
 
+augmented_index_path = os.path.join(index_path, "augmented_index.json")
+generated_queries_path = os.path.join(index_path, "generated_queries.json")
 
-# tokenizer = transformers.LlamaTokenizer.from_pretrained("huggyllama/llama-7b", cache_dir=cache_path)
-# model = transformers.LlamaForCausalLM.from_pretrained("huggyllama/llama-7b", load_in_4bit=True, cache_dir=cache_path)
+tokenizer = transformers.LlamaTokenizer.from_pretrained("huggyllama/llama-7b", cache_dir=cache_path)
+model = transformers.LlamaForCausalLM.from_pretrained("huggyllama/llama-7b", load_in_4bit=True, cache_dir=cache_path)
 
-import pyterrier as pt
-from pathlib import Path
+with open(augmented_index_path,'r',buffering=10000) as f:
+    for line in f:
+        di = json.loads(line)
 
-if not pt.started():
-    pt.init(tqdm="notebook", home_dir=terrier_path)
-
-dataset = pt.get_dataset('irds:trec-fair/2022')
-idx_path = Path(index_path).absolute()
-if not (idx_path / "data.properties").is_file():
-    pt.index.IterDictIndexer(
-        str(idx_path)
-    ).index(dataset.get_corpus_iter())
-
-# batch = tokenizer(
-#     "The capital of Canada is",
-#     return_tensors="pt",
-#     add_special_tokens=False
-# )
-# batch = {k: v.to("cpu") for k, v in batch.items()}
-# generated = model.generate(batch["input_ids"], max_length=30)
-# print(tokenizer.decode(generated[0]))
+        queries = []
+        for prompt in PROMPT_DICT.values():
+            for sub_prompt in prompt.values():
+                token_prompt = sub_prompt.replace('{doc}', di['plain'])
+                batch = tokenizer(
+                    token_prompt,
+                    return_tensors="pt",
+                    add_special_tokens=False
+                )
+                batch = {k: v.to("cuda") for k, v in batch.items()}
+                generated = tokenizer.decode(model.generate(batch["input_ids"], max_length=1024)[0])
+                queries.append(list(filter(lambda x: len(x) > 0, generated.replace(token_prompt, '').split('\n\n')))[0])
+        with open(generated_queries_path, 'a') as f1:
+            f1.write(json.dumps({'id': di['id'], 'queries': queries}))
