@@ -9,3 +9,7 @@ llama
 # Ignore IDEA files
 .idea/
 .ipynb_checkpoints/
+__pycache__/
+
+# Ignore meta file
+train_topics_meta.jsonl
