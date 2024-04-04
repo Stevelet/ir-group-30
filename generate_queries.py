@@ -1,34 +1,3 @@
-# import torch
-# from transformers import AutoModelForCausalLM, AutoTokenizer
-#
-# model_name = "huggyllama/llama-7b"
-#
-# model = AutoModelForCausalLM.from_pretrained(
-#     model_name,
-#     load_in_4bit=True,
-#     bnb_4bit_quant_type="nf4",
-#     bnb_4bit_use_double_quant=True,
-#     bnb_4bit_compute_dtype=torch.bfloat16,
-#     device_map="cpu"
-# )
-# tokenizer = AutoTokenizer.from_pretrained(
-#     model_name,
-#     trust_remote_code=True,
-#     device_map="cpu"
-# )
-#
-# batch = tokenizer(
-#     "The capital of Canada is",
-#     return_tensors="pt",
-#     add_special_tokens=False
-# )
-#
-# print("Reached")
-#
-# batch = {k: v.to("cpu") for k, v in batch.items()}
-# generated = model.generate(batch["input_ids"], max_length=100)
-# print(tokenizer.decode(generated[0]))
-
 import transformers
 from dotenv import load_dotenv
 
@@ -36,11 +5,35 @@ load_dotenv()
 
 device = "cpu"
 
-tokenizer = transformers.LlamaTokenizer.from_pretrained("huggyllama/llama-7b")
-model = transformers.LlamaForCausalLM.from_pretrained("huggyllama/llama-7b", load_in_4bit=True)
+import os
 
-batch = tokenizer(
-    "The capital of Canada is",
-    return_tensors="pt",
-    add_special_tokens=False
-)
+k_drive = os.path.join(os.getcwd(), "..", "..", "..", "mnt", "k")
+cache_path = os.path.join(k_drive, "cache")
+trec_data = os.path.join(k_drive, "trec")
+terrier_path = os.path.join(k_drive, "terrier")
+
+
+# tokenizer = transformers.LlamaTokenizer.from_pretrained("huggyllama/llama-7b", cache_dir=cache_path)
+# model = transformers.LlamaForCausalLM.from_pretrained("huggyllama/llama-7b", load_in_4bit=True, cache_dir=cache_path)
+
+import pyterrier as pt
+from pathlib import Path
+
+if not pt.started():
+    pt.init(tqdm="notebook", home_dir=terrier_path)
+
+dataset = pt.get_dataset('irds:trec-fair/2022')
+
+iter = dataset.get_corpus_iter()
+
+for item in iter:
+    pass
+
+# batch = tokenizer(
+#     "The capital of Canada is",
+#     return_tensors="pt",
+#     add_special_tokens=False
+# )
+# batch = {k: v.to("cpu") for k, v in batch.items()}
+# generated = model.generate(batch["input_ids"], max_length=30)
+# print(tokenizer.decode(generated[0]))
