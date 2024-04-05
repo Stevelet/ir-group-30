@@ -14,8 +14,6 @@ augmented_index_location = os.path.join(index_location, 'augmented_index.json')
 meta_map = {}
 gender_set = {"Man", "Woman", "Non-binary"}
 
-check_id = 12148915
-
 if not os.path.exists(meta_index_location):
     with open(meta_file_location, 'r') as f:
         for line in f:
