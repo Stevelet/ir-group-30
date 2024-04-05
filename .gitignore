@@ -1,0 +1,15 @@
+# Ignore the cache files
+cache/
+!cache/.keep
+
+# Ignore model files
+llama
+!llama/.keep
+
+# Ignore IDEA files
+.idea/
+.ipynb_checkpoints/
+__pycache__/
+
+# Ignore meta file
+train_topics_meta.jsonl
