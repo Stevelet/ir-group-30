@@ -18,6 +18,7 @@ with open(ranking_file, 'r') as fp:
 filled_ranking_dict = {}
 for key in ranking:
     filled_ranking = [(index, ranking_ids[str(doc_id)]) for index, doc_id in enumerate(ranking[key])]
+    print(filled_ranking)
     filled_ranking_dict[key] = filled_ranking
 
 with open(final_ranking, 'w') as fp:
